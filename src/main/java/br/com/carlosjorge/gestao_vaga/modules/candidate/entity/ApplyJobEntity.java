@@ -1,6 +1,5 @@
 package br.com.carlosjorge.gestao_vaga.modules.candidate.entity;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
