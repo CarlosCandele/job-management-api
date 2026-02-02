@@ -130,7 +130,6 @@
 
     <build>
         <plugins>
-            <!-- Plugin de compilação para garantir compatibilidade com Java 17 -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>

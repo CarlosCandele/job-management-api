@@ -1,5 +1,9 @@
 version: "3.9"
 
+networks:
+  gc-network:
+    driver: bridge
+
 services:
   postgres:
     image: postgres:16
@@ -13,6 +17,8 @@ services:
       - "5433:5432"
     volumes:
       - pg_data:/var/lib/postgresql/data
+    networks:
+      - gc-network
 
   pgadmin:
     image: dpage/pgadmin4
@@ -27,6 +33,22 @@ services:
       - postgres
     volumes:
       - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - gc-network
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    restart: always
+    volumes:
+      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    ports:
+      - "9090:9090"
+    depends_on:
+      - postgres
+    networks:
+      - gc-network
 
 volumes:
   pg_data:
@@ -36,3 +58,7 @@ volumes:
   pgadmin_data:
     external: true
     name: gestao_vaga_pgadmin_data
+
+  prometheus_data:
+    external: true
+    name: gestao_vaga_prometheus_data

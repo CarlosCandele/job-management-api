@@ -1,8 +1,6 @@
 package br.com.carlosjorge.gestao_vaga.security;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -25,47 +23,45 @@ public class SecurityCompanyFilter extends OncePerRequestFilter {
     private JWTProvider jwtProvider;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, 
-                                   HttpServletResponse response, 
-                                   FilterChain filterChain)
-            throws ServletException, IOException {
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        return !request.getRequestURI().startsWith("/company");
+    }
 
-        // Sempre limpar contexto antes de processar
-        SecurityContextHolder.clearContext();
+    @Override
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    FilterChain filterChain)
+            throws ServletException, IOException {
 
         String header = request.getHeader("Authorization");
 
-        // Só aplicamos autenticação para rotas /company (pode expandir se quiser)
-        if (request.getRequestURI().startsWith("/company")) {
-            if (header != null && header.startsWith("Bearer ")) {
-                String rawToken = header.substring(7).trim();
-
-                DecodedJWT token = jwtProvider.validateToken(rawToken);
-
-                if (token == null) {
-                    // Token inválido ou expirado
-                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                    return;
-                }
-
-                // Extrai roles do token
-                List<String> roles = token.getClaim("roles").asList(String.class);
-                var grants = roles != null
-                        ? roles.stream()
-                               .map(role -> new SimpleGrantedAuthority("ROLE_" + role.toUpperCase()))
-                               .toList()
-                        : Collections.emptyList();
-
-                // Injeta o company_id no request para uso em controllers/use cases
-                request.setAttribute("company_id", token.getSubject());
-
-                // Cria autenticação do Spring Security
-                UsernamePasswordAuthenticationToken auth =
-                        new UsernamePasswordAuthenticationToken(token.getSubject(), null);
-
-                SecurityContextHolder.getContext().setAuthentication(auth);
-            }
+        if (header == null || !header.startsWith("Bearer ")) {
+            filterChain.doFilter(request, response);
+            return;
         }
+
+        DecodedJWT token = jwtProvider.validateToken(header.substring(7));
+
+        if (token == null) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            return;
+        }
+
+        var authorities = token.getClaim("roles")
+                .asList(String.class)
+                .stream()
+                .map(role -> new SimpleGrantedAuthority("ROLE_" + role.toUpperCase()))
+                .toList();
+
+        request.setAttribute("company_id", token.getSubject());
+
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(
+                        token.getSubject(),
+                        null,
+                        authorities
+                )
+        );
 
         filterChain.doFilter(request, response);
     }
