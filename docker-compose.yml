@@ -1,24 +1,23 @@
-version: "3.9"
 
 networks:
-  gc-network:
+  gv-network:
     driver: bridge
 
 services:
   postgres:
-    image: postgres:16
     container_name: postgres_dev
+    image: postgres
+    ports:
+      - 5433:5432
     restart: always
     environment:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: admin
       POSTGRES_DB: gestao_vaga
-    ports:
-      - "5433:5432"
     volumes:
       - pg_data:/var/lib/postgresql/data
     networks:
-      - gc-network
+      - gv-network
 
   pgadmin:
     image: dpage/pgadmin4
@@ -28,27 +27,32 @@ services:
       PGADMIN_DEFAULT_EMAIL: admin@admin.com
       PGADMIN_DEFAULT_PASSWORD: admin
     ports:
-      - "5050:80"
+      - 5050:80
     depends_on:
       - postgres
     volumes:
       - pgadmin_data:/var/lib/pgadmin
     networks:
-      - gc-network
+      - gv-network
 
   prometheus:
     image: prom/prometheus:latest
-    container_name: prometheus
-    restart: always
     volumes:
       - ./config/prometheus.yml:/etc/prometheus/prometheus.yml
       - prometheus_data:/prometheus
     ports:
-      - "9090:9090"
-    depends_on:
-      - postgres
+      - 9090:9090
     networks:
-      - gc-network
+      - gv-network
+         
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - 3000:3000
+    volumes:
+      - grafana_data:/var/lib/grafana
+    networks:
+      - gv-network
 
 volumes:
   pg_data:
@@ -62,3 +66,9 @@ volumes:
   prometheus_data:
     external: true
     name: gestao_vaga_prometheus_data
+  
+  grafana_data:
+    external: true
+    name: gestao_vaga_grafana_data
+    
+  
