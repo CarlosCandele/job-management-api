@@ -1,15 +1,23 @@
-FROM ubuntu:latest AS build
+# ===== BUILD STAGE =====
+FROM maven:3.9.6-eclipse-temurin-17 AS build
 
-RUN apt-get update
-RUN apt-get install openjdk-17-jdk -y
-COPY . .
+WORKDIR /app
 
-RUN apt-get install maven -y
-RUN mvn clean install 
+COPY pom.xml .
+RUN mvn dependency:go-offline
 
-FROM openjdk:17-jdk-slim
+COPY src ./src
+
+RUN mvn clean package -DskipTests
+
+
+# ===== RUNTIME STAGE =====
+FROM eclipse-temurin:17-jdk-jammy
+
+WORKDIR /app
+
+COPY --from=build /app/target/gestao_vaga-0.0.1-SNAPSHOT.jar app.jar
+
 EXPOSE 8080
-
-COPY --from=build /target/gestao_vagas-0.0.1 app.jar
 
 ENTRYPOINT ["java", "-jar", "app.jar"]
