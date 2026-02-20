@@ -1,74 +1,44 @@
+version: '3.8'
 
 networks:
   gv-network:
     driver: bridge
+volumes:
+  prometheus_data: 
+  grafana_data:
 
 services:
   postgres:
-    container_name: postgres_dev
+    container_name: gestao_vaga_postgres
     image: postgres
     ports:
-      - 5433:5432
-    restart: always
+      - 5431:5432
     environment:
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: admin
-      POSTGRES_DB: gestao_vaga
-    volumes:
-      - pg_data:/var/lib/postgresql/data
-    networks:
-      - gv-network
-
-  pgadmin:
-    image: dpage/pgadmin4
-    container_name: pgadmin
-    restart: always
-    environment:
-      PGADMIN_DEFAULT_EMAIL: admin@admin.com
-      PGADMIN_DEFAULT_PASSWORD: admin
-    ports:
-      - 5050:80
-    depends_on:
-      - postgres
-    volumes:
-      - pgadmin_data:/var/lib/pgadmin
-    networks:
-      - gv-network
-
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=admin
+      - POSTGRES_DB=gestao_vaga
+  
   prometheus:
-    image: prom/prometheus:latest
-    volumes:
-      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml
-      - prometheus_data:/prometheus
-    ports:
-      - 9090:9090
-    networks:
-      - gv-network
-         
+      container_name: prometheus
+      image: prom/prometheus:latest
+      volumes:
+        - ./config/prometheus.yml:/etc/prometheus/prometheus.yml
+        - prometheus_data:/prometheus
+      networks:
+        - gv-network
+      ports:
+        - 9090:9090
   grafana:
-    image: grafana/grafana:latest
-    ports:
-      - 3000:3000
-    volumes:
-      - grafana_data:/var/lib/grafana
-    networks:
-      - gv-network
-
-volumes:
-  pg_data:
-    external: true
-    name: gestao_vaga_pg_data
-
-  pgadmin_data:
-    external: true
-    name: gestao_vaga_pgadmin_data
-
-  prometheus_data:
-    external: true
-    name: gestao_vaga_prometheus_data
-  
-  grafana_data:
-    external: true
-    name: gestao_vaga_grafana_data
-    
-  
+      container_name: grafana
+      image: grafana/grafana:latest
+      ports:
+        - 3000:3000
+      networks:
+        - gv-network
+  api-gestao-vaga:
+      build: ./gestao_vaga
+      container_name: api-gestao-vaga
+      ports:
+        - "8080:8080"
+      networks:
+        - gv-network
