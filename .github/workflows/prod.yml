@@ -23,3 +23,17 @@ jobs:
               run: docker build -t carloscandele/gestao_vaga .
             - name: Publish image
               run: docker push carloscandele/gestao_vaga
+    deploy:
+        needs: build
+        runs-on: self-hosted
+        steps:
+            - name: Pull image docker hub
+              run: docker pull carloscandele/gestao_vaga:latest
+            - name: Stop and remove existing container
+              run: 
+                if [ $(docker ps -q -f name=gestao_vaga) ]; then
+                  docker stop gestao_vaga
+                  docker rm gestao_vaga
+                fi
+            - name: Run docker container
+              run: docker run -d -p 8080:8080 -e DATABASE_URL=${{secrets.DATABASE_URL}} -e DATABASE_PASSWORD=${{secrets.DATABASE_PASSWORD}} -e DATABASE_USERNAME=${{secrets.DATABASE_USERNAME}} --name gestao_vaga carloscandele/gestao_vaga
