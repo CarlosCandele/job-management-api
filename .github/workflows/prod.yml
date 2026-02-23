@@ -1,39 +1,60 @@
 name: Gestao de Vagas Application
 
 on:
-    push:
-        branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
 
 jobs:
-    build:
-        runs-on: ubuntu-latest
-        steps:
-            - name: Checkout code
-              uses: actions/checkout@v3
-            - name: Setup Java
-              uses: actions/setup-java@v3
-              with:
-                distribution: 'temurin'
-                java-version: '17'
-            - name: Build project
-              run: mvn clean install
-            - name: Login docker
-              run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
-            - name: Build docker image
-              run: docker build -t carloscandele/gestao_vaga .
-            - name: Publish image
-              run: docker push carloscandele/gestao_vaga
-    deploy:
-        needs: build
-        runs-on: self-hosted
-        steps:
-            - name: Pull image docker hub
-              run: docker pull carloscandele/gestao_vaga:latest
-            - name: Stop and remove existing container
-              run: 
-                if [ $(docker ps -q -f name=gestao_vaga) ]; then
-                  docker stop gestao_vaga
-                  docker rm gestao_vaga
-                fi
-            - name: Run docker container
-              run: docker run -d -p 8080:8080 -e DATABASE_URL=${{secrets.DATABASE_URL}} -e DATABASE_PASSWORD=${{secrets.DATABASE_PASSWORD}} -e DATABASE_USERNAME=${{secrets.DATABASE_USERNAME}} --name gestao_vaga carloscandele/gestao_vaga
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+
+      - name: Build project
+        run: mvn clean install -DskipTests
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build Docker image
+        run: docker build -t carloscandele/gestao_vaga:latest .
+
+      - name: Push Docker image
+        run: docker push carloscandele/gestao_vaga:latest
+
+  deploy:
+    needs: build
+    runs-on: self-hosted
+
+    steps:
+      - name: Pull image from Docker Hub
+        run: docker pull carloscandele/gestao_vaga:latest
+
+      - name: Stop and remove existing container
+        run: |
+          if [ "$(docker ps -aq -f name=gestao_vaga)" ]; then
+            docker rm -f gestao_vaga
+          fi
+
+      - name: Run Docker container
+        run: |
+          docker run -d \
+            -p 8080:8080 \
+            -e DATABASE_URL=${{ secrets.DATABASE_URL }} \
+            -e DATABASE_USERNAME=${{ secrets.DATABASE_USERNAME }} \
+            -e DATABASE_PASSWORD=${{ secrets.DATABASE_PASSWORD }} \
+            --name gestao_vaga \
+            carloscandele/gestao_vaga:latest
