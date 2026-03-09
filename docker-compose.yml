@@ -17,6 +17,8 @@ services:
       - POSTGRES_USER=admin
       - POSTGRES_PASSWORD=admin
       - POSTGRES_DB=gestao_vaga
+    networks:
+      - gv-network
   
   prometheus:
       container_name: prometheus
@@ -36,9 +38,15 @@ services:
       networks:
         - gv-network
   api-gestao-vaga:
-      build: ./gestao_vaga
-      container_name: api-gestao-vaga
-      ports:
-        - "8080:8080"
-      networks:
-        - gv-network
+    build: .
+    container_name: api-gestao-vaga
+    ports:
+      - "8080:8080"
+    environment:
+      DATABASE_URL: jdbc:postgresql://postgres:5432/gestao_vaga
+      DATABASE_USERNAME: admin
+      DATABASE_PASSWORD: admin
+    depends_on:
+      - postgres
+    networks:
+      - gv-network
