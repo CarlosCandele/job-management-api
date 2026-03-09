@@ -50,3 +50,5 @@ services:
       - postgres
     networks:
       - gv-network
+
+      
