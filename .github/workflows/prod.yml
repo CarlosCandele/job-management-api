@@ -57,4 +57,5 @@ jobs:
             -e DATABASE_USERNAME=${{ secrets.DATABASE_USERNAME }} \
             -e DATABASE_PASSWORD='${{ secrets.DATABASE_PASSWORD }}' \
             --name gestao_vaga \
-            carloscandele/gestao_vaga:latest
+            carloscandele/gestao_vaga:latest  
+            
