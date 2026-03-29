@@ -1,5 +1,7 @@
 package br.com.carlosjorge.gestao_vaga.modules.candidate.useCases;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -27,6 +29,10 @@ public class CreateCandidateUseCase {
 
         String password  = passwordEncoder.encode(candidateEntitty.getPassword());
         candidateEntitty.setPassword(password);
+
+        if (candidateEntitty.getRoles() == null || candidateEntitty.getRoles().isEmpty()) {
+            candidateEntitty.setRoles(List.of("CANDIDATE"));
+        }
 
         return this.candidateRepository.save(candidateEntitty);
 

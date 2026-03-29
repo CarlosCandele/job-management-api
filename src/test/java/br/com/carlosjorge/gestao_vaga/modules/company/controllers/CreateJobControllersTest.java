@@ -40,6 +40,12 @@ public class CreateJobControllersTest {
     @Autowired
     private CompanyRepository companyRepository;
 
+    @org.springframework.boot.test.mock.mockito.MockBean
+    private br.com.carlosjorge.gestao_vaga.security.SecurityCompanyFilter securitCompanyFilter;
+
+    @org.springframework.boot.test.mock.mockito.MockBean
+    private br.com.carlosjorge.gestao_vaga.security.SecurityCandidateFilter securityCandidateFilter;
+
     @Before
     public void setup() {
         mvc = MockMvcBuilders
@@ -70,7 +76,7 @@ public class CreateJobControllersTest {
                 MockMvcRequestBuilders.post("/company/job/")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(TestUtil. objectToJSON(createJobDTO))
-                .header("Authorization", TestUtil.generateToken(company.getId(),"JAVAGAS_@12#")
+                .header("Authorization", "Bearer " + TestUtil.generateToken(UUID.randomUUID(),"JAVAGAS_@12#")
                 )
             ).andExpect(MockMvcResultMatchers.status().isOk());
         }
@@ -87,7 +93,7 @@ public class CreateJobControllersTest {
                     MockMvcRequestBuilders.post("/company/job/")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(TestUtil. objectToJSON(createJobDTO))
-                    .header("Authorization", TestUtil.generateToken(UUID.randomUUID(),"JAVAGAS_@12#")))
+                    .header("Authorization", "Bearer ", TestUtil.generateToken(UUID.randomUUID(),"JAVAGAS_@12#")))
                     .andExpect(MockMvcResultMatchers.status().isBadRequest());
                 
     }

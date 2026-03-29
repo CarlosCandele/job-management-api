@@ -122,3 +122,4 @@ public class CandidateController {
         return ResponseEntity.ok().body(result);
     }
 }
+

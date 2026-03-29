@@ -29,6 +29,7 @@ public class SecurityCandidateFilter extends OncePerRequestFilter {
         return uri.startsWith("/actuator")
             || uri.startsWith("/swagger")
             || uri.startsWith("/v3/api-docs")
+            || uri.startsWith("/candidate/auth")
             || !uri.startsWith("/candidate");
     }
 
@@ -66,4 +67,3 @@ public class SecurityCandidateFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 }
-

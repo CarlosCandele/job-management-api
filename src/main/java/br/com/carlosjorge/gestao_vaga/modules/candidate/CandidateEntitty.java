@@ -2,6 +2,7 @@ package br.com.carlosjorge.gestao_vaga.modules.candidate;
 
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 import org.hibernate.annotations.CreationTimestamp;
@@ -9,6 +10,7 @@ import org.hibernate.validator.constraints.Length;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -48,6 +50,10 @@ public class CandidateEntitty {
 
     @Schema(example = "Desenvolvedor front-end e back-end")
     private String curriculum;
+
+    @ElementCollection
+    @Schema(example = "[\"CANDIDATE\"]", description = "Roles do candidato")
+    private List<String> roles;
 
     @CreationTimestamp
     private LocalDateTime createdAt;
